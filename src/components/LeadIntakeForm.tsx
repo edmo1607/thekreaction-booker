@@ -84,7 +84,7 @@ export function LeadIntakeForm({ lead, services, onLeadChange, onSaveLead }: Lea
             <Input type="number" min={1} value={lead.hours} onChange={(event) => update("hours", Number(event.target.value))} />
           </Field>
           <Field label="Budget">
-            <Input type="number" min={0} value={lead.budget} onChange={(event) => update("budget", Number(event.target.value))} />
+            <Input type="number" min={0} inputMode="numeric" placeholder="Not shared yet" value={lead.budget || ""} onChange={(event) => update("budget", Number(event.target.value) || 0)} />
           </Field>
           <Field label="Client status">
             <Select value={lead.status} onChange={(event) => update("status", event.target.value as LeadStatus)}>

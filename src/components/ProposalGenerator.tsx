@@ -34,6 +34,11 @@ type EditableProposal = {
   ending: string;
 };
 
+const parseMoney = (value: string) => {
+  const parsed = Number(value.replace(/[^0-9.]/g, ""));
+  return Number.isFinite(parsed) && value.trim() !== "" ? parsed : null;
+};
+
 const splitEditableLines = (value: string) =>
   value
     .split("\n")
@@ -62,7 +67,7 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
       bookingProcess: proposal.bookingProcess.join("\n"),
       ending: proposal.ending,
     }),
-    [proposal.bookingProcess, proposal.ending, proposal.included, proposal.intro, service.name],
+    [proposal, service.name],
   );
   const [editableProposal, setEditableProposal] = useState<EditableProposal>(generatedEditableProposal);
 
@@ -70,6 +75,11 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
     setEditableProposal(generatedEditableProposal);
   }, [generatedEditableProposal]);
 
+  const editedTotal = parseMoney(editableProposal.total);
+  const editedDeposit = parseMoney(editableProposal.deposit);
+  const balanceDue = formatCurrency(
+    editedTotal !== null && editedDeposit !== null ? Math.max(0, editedTotal - editedDeposit) : proposal.balance,
+  );
   const editableIncluded = splitEditableLines(editableProposal.included);
   const editableBookingProcess = splitEditableLines(editableProposal.bookingProcess);
   const proposalText = [
@@ -84,6 +94,7 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
     ...(proposal.packageNote ? [`Package note: ${proposal.packageNote}`] : []),
     `Total: ${editableProposal.total}`,
     `Deposit to book: ${editableProposal.deposit}`,
+    `Balance due before delivery: ${balanceDue}`,
     "",
     "Included:",
     ...editableIncluded.map((item) => `- ${item}`),
@@ -138,7 +149,7 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
             Generated from selected service, {performanceLead ? "how long the show will be" : "coverage"}, add-ons, and location.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex shrink-0 flex-wrap gap-2">
           <Button onClick={() => copyText(proposalText)}>
             <Copy className="h-4 w-4" />
             Copy
@@ -149,15 +160,16 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <CardContent className="grid gap-5">
         <div id="proposal-print" className="rounded-lg border border-studio-line bg-black/25 p-5">
           <div className="flex items-center gap-4">
             <div className="print-logo-panel flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-studio-accent/40 bg-black shadow-red">
               <img src="/brand/the-k-reaction-mark.jpeg" alt="The K Reaction logo" className="brand-logo h-full w-full object-contain" />
             </div>
-            <div>
-              <p className="text-sm uppercase tracking-normal text-studio-accent">The K Reaction Proposal</p>
-              <h3 className="mt-2 text-2xl font-semibold">{lead.clientName || "New Client"} · {proposalTitle}</h3>
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wide text-studio-accent">The K Reaction Proposal</p>
+              <h3 className="mt-1 text-xl font-semibold leading-tight sm:text-2xl" style={{ textWrap: "balance" }}>{proposalTitle}</h3>
+              <p className="mt-1 text-sm text-studio-muted">Prepared for {lead.clientName || "New Client"}</p>
             </div>
           </div>
           <div className="mt-3 print-client-block">
@@ -165,7 +177,7 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
             <p className="hidden text-base font-semibold text-white print:block">{lead.clientName || "New Client"}</p>
           </div>
           <p className="mt-4 leading-7 text-zinc-300 print-hide">{editableProposal.intro}</p>
-          <div className="proposal-summary-grid mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <div className="proposal-summary-grid mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             <div className="proposal-summary-card min-h-24 rounded-lg border border-studio-accent/50 bg-studio-accent/10 p-3 shadow-red">
               <p className="text-xs font-medium uppercase tracking-normal text-red-200">Recommended package</p>
               <p className="mt-2 text-xl font-semibold text-white">{editableProposal.packageName}</p>
@@ -199,7 +211,7 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
             <div className="proposal-summary-card min-h-24 rounded-lg border border-studio-line bg-white/[0.04] p-3">
               <p className="text-xs font-medium uppercase tracking-normal text-studio-muted">Deposit</p>
               <p className="mt-2 text-xl font-semibold">{editableProposal.deposit}</p>
-              <p className="mt-0.5 text-xs text-studio-muted">50% of package</p>
+              <p className="mt-0.5 text-xs text-studio-muted">Balance {balanceDue} due before delivery</p>
             </div>
           </div>
           {proposal.packageNote && (
@@ -208,7 +220,7 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
             </p>
           )}
           <h4 className="proposal-section-title mt-6 font-semibold">What’s included</h4>
-          <ul className="proposal-section mt-3 grid auto-rows-fr gap-2 text-sm text-zinc-300 sm:grid-cols-2 xl:grid-cols-1">
+          <ul className="proposal-section mt-3 grid auto-rows-fr gap-2 text-sm text-zinc-300 sm:grid-cols-2">
             {editableIncluded.map((item) => (
               <li key={item} className="grid min-h-11 items-center rounded-md border border-studio-line bg-white/[0.03] px-3 py-2 leading-5">
                 <span className="block">{item}</span>
@@ -238,159 +250,9 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
           </ol>
           <p className="proposal-final-note mt-6 text-zinc-300">{editableProposal.ending}</p>
         </div>
-        <aside className="grid content-start gap-4">
-          <div className="rounded-lg border border-studio-line bg-white/[0.035] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-white">Editable proposal preview</p>
-                <p className="mt-1 text-xs leading-5 text-studio-muted">Adjust client-facing copy before exporting the PDF.</p>
-              </div>
-              <Button variant="secondary" onClick={() => setEditableProposal(generatedEditableProposal)}>
-                <RotateCcw className="h-4 w-4" />
-                Reset
-              </Button>
-            </div>
-            <div className="mt-4 grid gap-3">
-              <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                Proposal title
-                <input
-                  value={editableProposal.title}
-                  onChange={(event) => updateEditableProposal("title", event.target.value)}
-                  className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                />
-              </label>
-              <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                Intro message
-                <textarea
-                  value={editableProposal.intro}
-                  onChange={(event) => updateEditableProposal("intro", event.target.value)}
-                  rows={4}
-                  className="resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                />
-              </label>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                  Package recommendation
-                  <input
-                    value={editableProposal.packageName}
-                    onChange={(event) => updateEditableProposal("packageName", event.target.value)}
-                    className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                  />
-                </label>
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                  Package price
-                  <input
-                    value={editableProposal.packagePrice}
-                    onChange={(event) => updateEditableProposal("packagePrice", event.target.value)}
-                    className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                  />
-                </label>
-                {performanceLead && (
-                  <div className="grid gap-2 rounded-md border border-studio-line bg-black/25 p-3 sm:col-span-2">
-                    <label className="flex items-center justify-between gap-3 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                      <span>Show duration in PDF</span>
-                      <input
-                        type="checkbox"
-                        checked={editableProposal.showDurationInPdf}
-                        onChange={(event) => updateEditableProposal("showDurationInPdf", event.target.checked)}
-                        className="h-4 w-4 accent-studio-accent"
-                      />
-                    </label>
-                    <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                      Show duration
-                      <input
-                        value={editableProposal.showDurationLabel}
-                        onChange={(event) => updateEditableProposal("showDurationLabel", event.target.value)}
-                        className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                      />
-                    </label>
-                  </div>
-                )}
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                  Reels
-                  <input
-                    value={editableProposal.reels}
-                    onChange={(event) => updateEditableProposal("reels", event.target.value)}
-                    className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                  />
-                </label>
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                  Reel duration
-                  <input
-                    value={editableProposal.reelDuration}
-                    onChange={(event) => updateEditableProposal("reelDuration", event.target.value)}
-                    className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                  />
-                </label>
-                {proposal.additionalHours > 0 && (
-                  <>
-                    <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                      Additional hours
-                      <input
-                        value={editableProposal.additionalHours}
-                        onChange={(event) => updateEditableProposal("additionalHours", event.target.value)}
-                        className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                      />
-                    </label>
-                    <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                      Additional hours price
-                      <input
-                        value={editableProposal.additionalHoursPrice}
-                        onChange={(event) => updateEditableProposal("additionalHoursPrice", event.target.value)}
-                        className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                      />
-                    </label>
-                  </>
-                )}
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                  Total
-                  <input
-                    value={editableProposal.total}
-                    onChange={(event) => updateEditableProposal("total", event.target.value)}
-                    className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                  />
-                </label>
-                <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                  Deposit
-                  <input
-                    value={editableProposal.deposit}
-                    onChange={(event) => updateEditableProposal("deposit", event.target.value)}
-                    className="rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                  />
-                </label>
-              </div>
-              <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                What’s included
-                <textarea
-                  value={editableProposal.included}
-                  onChange={(event) => updateEditableProposal("included", event.target.value)}
-                  rows={6}
-                  className="resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                />
-              </label>
-              <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                Booking process
-                <textarea
-                  value={editableProposal.bookingProcess}
-                  onChange={(event) => updateEditableProposal("bookingProcess", event.target.value)}
-                  rows={5}
-                  className="resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                />
-              </label>
-              <label className="grid gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
-                Final note
-                <textarea
-                  value={editableProposal.ending}
-                  onChange={(event) => updateEditableProposal("ending", event.target.value)}
-                  rows={3}
-                  className="resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
-                />
-              </label>
-            </div>
-          </div>
-          <div>
+        <aside className="grid min-w-0 content-start gap-4">          <div>
             <p className="mb-3 text-sm font-medium text-white">Add-ons</p>
-            <div className="grid gap-2">
+            <div className="grid gap-2 sm:grid-cols-3">
               {service.addOns.map((addOn) => (
                 <label key={addOn.id} className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-studio-line bg-white/[0.03] p-3 text-sm">
                   <span>
@@ -416,6 +278,156 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
               {proposal.suggestions.map((suggestion) => (
                 <p key={suggestion}>{suggestion}</p>
               ))}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-studio-line bg-white/[0.035] p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-white">Editable proposal preview</p>
+                <p className="mt-1 text-xs leading-5 text-studio-muted">Adjust client-facing copy before exporting the PDF.</p>
+              </div>
+              <Button variant="secondary" onClick={() => setEditableProposal(generatedEditableProposal)}>
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </Button>
+            </div>
+            <div className="mt-4 grid gap-3">
+              <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                Proposal title
+                <input
+                  value={editableProposal.title}
+                  onChange={(event) => updateEditableProposal("title", event.target.value)}
+                  className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                />
+              </label>
+              <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                Intro message
+                <textarea
+                  value={editableProposal.intro}
+                  onChange={(event) => updateEditableProposal("intro", event.target.value)}
+                  rows={4}
+                  className="w-full min-w-0 resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                  Package
+                  <input
+                    value={editableProposal.packageName}
+                    onChange={(event) => updateEditableProposal("packageName", event.target.value)}
+                    className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                  />
+                </label>
+                <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                  Package price
+                  <input
+                    value={editableProposal.packagePrice}
+                    onChange={(event) => updateEditableProposal("packagePrice", event.target.value)}
+                    className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                  />
+                </label>
+                {performanceLead && (
+                  <div className="col-span-2 grid gap-2 rounded-md border border-studio-line bg-black/25 p-3">
+                    <label className="flex items-center justify-between gap-3 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                      <span>Show duration in PDF</span>
+                      <input
+                        type="checkbox"
+                        checked={editableProposal.showDurationInPdf}
+                        onChange={(event) => updateEditableProposal("showDurationInPdf", event.target.checked)}
+                        className="h-4 w-4 accent-studio-accent"
+                      />
+                    </label>
+                    <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                      Show duration
+                      <input
+                        value={editableProposal.showDurationLabel}
+                        onChange={(event) => updateEditableProposal("showDurationLabel", event.target.value)}
+                        className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                      />
+                    </label>
+                  </div>
+                )}
+                <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                  Reels
+                  <input
+                    value={editableProposal.reels}
+                    onChange={(event) => updateEditableProposal("reels", event.target.value)}
+                    className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                  />
+                </label>
+                <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                  Reel duration
+                  <input
+                    value={editableProposal.reelDuration}
+                    onChange={(event) => updateEditableProposal("reelDuration", event.target.value)}
+                    className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                  />
+                </label>
+                {proposal.additionalHours > 0 && (
+                  <>
+                    <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                      Additional hours
+                      <input
+                        value={editableProposal.additionalHours}
+                        onChange={(event) => updateEditableProposal("additionalHours", event.target.value)}
+                        className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                      />
+                    </label>
+                    <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                      Additional hours price
+                      <input
+                        value={editableProposal.additionalHoursPrice}
+                        onChange={(event) => updateEditableProposal("additionalHoursPrice", event.target.value)}
+                        className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                      />
+                    </label>
+                  </>
+                )}
+                <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                  Total
+                  <input
+                    value={editableProposal.total}
+                    onChange={(event) => updateEditableProposal("total", event.target.value)}
+                    className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                  />
+                </label>
+                <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                  Deposit
+                  <input
+                    value={editableProposal.deposit}
+                    onChange={(event) => updateEditableProposal("deposit", event.target.value)}
+                    className="w-full min-w-0 rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                  />
+                </label>
+              </div>
+              <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                What’s included
+                <textarea
+                  value={editableProposal.included}
+                  onChange={(event) => updateEditableProposal("included", event.target.value)}
+                  rows={6}
+                  className="w-full min-w-0 resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                />
+              </label>
+              <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                Booking process
+                <textarea
+                  value={editableProposal.bookingProcess}
+                  onChange={(event) => updateEditableProposal("bookingProcess", event.target.value)}
+                  rows={5}
+                  className="w-full min-w-0 resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                />
+              </label>
+              <label className="grid min-w-0 content-start gap-1.5 text-xs font-medium uppercase tracking-normal text-studio-muted">
+                Final note
+                <textarea
+                  value={editableProposal.ending}
+                  onChange={(event) => updateEditableProposal("ending", event.target.value)}
+                  rows={3}
+                  className="w-full min-w-0 resize-y rounded-md border border-studio-line bg-black/40 px-3 py-2 text-sm normal-case leading-6 text-white outline-none transition focus:border-studio-accent focus:shadow-red"
+                />
+              </label>
             </div>
           </div>
         </aside>
@@ -473,7 +485,7 @@ export function ProposalGenerator({ lead, service, proposal, selectedAddOns, onT
           <div className="pdf-export-card">
             <span>Deposit</span>
             <strong>{editableProposal.deposit}</strong>
-            <small>50% of package</small>
+            <small>Balance {balanceDue} due before delivery</small>
           </div>
         </div>
 

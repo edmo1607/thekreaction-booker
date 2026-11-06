@@ -1,5 +1,8 @@
 import type { AddOn, Lead, Proposal, Service } from "../types";
 
+/** Business rule: every booking is secured with a flat $100 deposit (not a percentage, not per-service). */
+export const BOOKING_DEPOSIT = 100;
+
 const extraHourRate = 125;
 const includedPremiumHours = 4;
 const additionalHoursBlockSize = 3;
@@ -92,7 +95,8 @@ export function calculateProposal(lead: Lead, service: Service, addOns: AddOn[])
   const addOnTotal = addOns.reduce((sum, addOn) => sum + addOn.price, 0);
   const basePackagePrice = performanceLead ? showPackage.price : service.basePrice + durationAdjustment + locationFee;
   const price = basePackagePrice + additionalHoursPrice + addOnTotal;
-  const deposit = Math.round(basePackagePrice * 0.5);
+  const deposit = Math.min(BOOKING_DEPOSIT, price);
+  const balance = price - deposit;
   const suggestions = buildSuggestions(lead, service, price);
   const showDurationLabel = liveRecording ? `${liveDurationMinutes} minutes` : `${showDuration || 1} hour${(showDuration || 1) === 1 ? "" : "s"}`;
   const durationLine = liveRecording
@@ -116,6 +120,7 @@ export function calculateProposal(lead: Lead, service: Service, addOns: AddOn[])
     additionalHoursPrice,
     packageNote: additionalHours > 0 ? `${additionalHours} additional hours added to the proposal.` : performanceLead ? showPackage.note : undefined,
     deposit,
+    balance,
     included: [
       ...(performanceLead ? packageIncluded : service.deliverables),
       durationLine,
@@ -125,7 +130,7 @@ export function calculateProposal(lead: Lead, service: Service, addOns: AddOn[])
     addOns,
     bookingProcess: [
       "Confirm the scope, date, location, and final deliverables.",
-      `Secure the date with a deposit of $${deposit}.`,
+      `Secure the date with a $${deposit} deposit. The remaining $${balance} is due before delivery.`,
       "Receive a production confirmation with timing, contact details, and shot priorities.",
       `Final assets are delivered within ${service.turnaround}.`,
     ],
@@ -206,7 +211,7 @@ function buildSuggestions(lead: Lead, service: Service, price: number) {
     suggestions.push("Audio and nightlife context detected. Mention clean audio sync and vertical highlight clips.");
   }
 
-  suggestions.push("Suggested deposit: 50% of the selected package price.");
+  suggestions.push(`Booking deposit: fixed $${BOOKING_DEPOSIT}. Balance due: $${Math.max(0, price - BOOKING_DEPOSIT)}.`);
   return suggestions;
 }
 
