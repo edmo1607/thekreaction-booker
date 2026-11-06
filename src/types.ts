@@ -35,7 +35,6 @@ export type Service = {
   description: string;
   deliverables: string[];
   addOns: AddOn[];
-  depositAmount: number;
   turnaround: string;
 };
 
@@ -58,6 +57,7 @@ export type Proposal = {
   additionalHoursPrice: number;
   packageNote?: string;
   deposit: number;
+  balance: number;
   included: string[];
   addOns: AddOn[];
   bookingProcess: string[];

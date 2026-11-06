@@ -51,7 +51,10 @@ function App() {
   const liveRecording = isLiveRecordingService(lead);
   const liveRecordingGuide = getLiveRecordingGuide(lead);
 
-  const addOns = service.addOns.filter((addOn) => selectedAddOns.includes(addOn.id));
+  const addOns = useMemo(
+    () => service.addOns.filter((addOn) => selectedAddOns.includes(addOn.id)),
+    [service, selectedAddOns],
+  );
   const proposal = useMemo(() => calculateProposal(lead, service, addOns), [lead, service, addOns]);
 
   const updateLead = (updatedLead: Lead) => {
@@ -93,7 +96,6 @@ function App() {
       description: "Describe the service offer and client outcome.",
       deliverables: ["Primary deliverable", "Social-ready export"],
       addOns: [{ id: crypto.randomUUID(), name: "Premium add-on", price: 250 }],
-      depositAmount: 250,
       turnaround: "7 business days",
     };
     setServices((current) => [...current, newService]);
@@ -150,7 +152,7 @@ function App() {
           </div>
         </header>
 
-        <Dashboard leads={leads} currentProposal={proposal} />
+        <Dashboard leads={leads} />
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(420px,.95fr)]">
           <div className="grid gap-6">

@@ -12,7 +12,6 @@ export const servicesSeed: Service[] = [
       { id: "live-promo-reels", name: "Extra promo reel bundle", price: 300 },
       { id: "live-rush", name: "Rush delivery", price: 250 },
     ],
-    depositAmount: 175,
     turnaround: "5-7 business days",
   },
   {
@@ -26,7 +25,6 @@ export const servicesSeed: Service[] = [
       { id: "fast-turn", name: "48-hour rush edit", price: 300 },
       { id: "reel-bundle", name: "3 additional reels", price: 350 },
     ],
-    depositAmount: 250,
     turnaround: "5-7 business days",
   },
   {
@@ -40,7 +38,6 @@ export const servicesSeed: Service[] = [
       { id: "second-shooter", name: "Second shooter", price: 500 },
       { id: "same-week", name: "Same-week delivery", price: 250 },
     ],
-    depositAmount: 350,
     turnaround: "7-10 business days",
   },
   {
@@ -54,7 +51,6 @@ export const servicesSeed: Service[] = [
       { id: "hook-pack", name: "Extra hook variations", price: 150 },
       { id: "paid-ad", name: "Ad-ready export set", price: 200 },
     ],
-    depositAmount: 200,
     turnaround: "4-6 business days",
   },
   {
@@ -68,7 +64,6 @@ export const servicesSeed: Service[] = [
       { id: "retouching", name: "Advanced retouching set", price: 180 },
       { id: "studio", name: "Studio lighting kit", price: 220 },
     ],
-    depositAmount: 175,
     turnaround: "5 business days",
   },
   {
@@ -82,7 +77,6 @@ export const servicesSeed: Service[] = [
       { id: "booking", name: "Booking integration", price: 300 },
       { id: "seo", name: "Local SEO setup", price: 250 },
     ],
-    depositAmount: 700,
     turnaround: "2-4 weeks",
   },
   {
@@ -96,7 +90,6 @@ export const servicesSeed: Service[] = [
       { id: "crew", name: "Expanded crew day", price: 900 },
       { id: "ads", name: "Ad campaign cutdowns", price: 500 },
     ],
-    depositAmount: 500,
     turnaround: "Timeline based on scope",
   },
 ];
