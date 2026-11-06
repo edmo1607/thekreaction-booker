@@ -1,0 +1,315 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #050505;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 15% 8%, rgba(209, 0, 0, 0.18), transparent 26rem),
+    radial-gradient(circle at 82% 0%, rgba(120, 0, 0, 0.22), transparent 30rem),
+    linear-gradient(180deg, #020202 0%, #080607 45%, #050505 100%);
+  color: #f5f5f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(209, 0, 0, 0.45);
+}
+
+.brand-logo {
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.08)) drop-shadow(0 0 28px rgba(209, 0, 0, 0.16));
+}
+
+.pdf-export-stage {
+  position: fixed;
+  top: 0;
+  left: -10000px;
+  width: 816px;
+  height: 1056px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.pdf-export-page {
+  width: 816px;
+  height: 1056px;
+  max-height: 1056px;
+  overflow: hidden;
+  padding: 44px;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(209, 0, 0, 0.2), transparent 240px),
+    linear-gradient(180deg, #050505 0%, #090707 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.pdf-export-header,
+.pdf-export-card,
+.pdf-export-section,
+.pdf-export-cta {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.pdf-export-header {
+  display: grid;
+  grid-template-columns: 86px 1fr;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.pdf-export-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 86px;
+  height: 86px;
+  overflow: hidden;
+  border: 1px solid rgba(209, 0, 0, 0.55);
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 0 28px rgba(209, 0, 0, 0.2);
+}
+
+.pdf-export-logo img {
+  display: block;
+  width: 86px;
+  height: 86px;
+  max-width: 86px;
+  max-height: 86px;
+  object-fit: contain;
+}
+
+.pdf-export-kicker {
+  margin: 0;
+  color: rgb(209, 0, 0);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pdf-export-header h2 {
+  margin: 7px 0 0;
+  color: #fff;
+  font-size: 28px;
+  line-height: 1.05;
+}
+
+.pdf-export-client {
+  margin: 7px 0 0;
+  color: #c7c7cf;
+  font-size: 15px;
+}
+
+.pdf-export-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pdf-export-card {
+  min-height: 76px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.pdf-export-card-feature {
+  border-color: rgba(209, 0, 0, 0.72);
+  background: rgba(209, 0, 0, 0.13);
+  box-shadow: 0 0 28px rgba(209, 0, 0, 0.14);
+}
+
+.pdf-export-card span {
+  display: block;
+  color: #a1a1aa;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pdf-export-card strong {
+  display: block;
+  margin-top: 8px;
+  color: #fff;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.pdf-export-card small {
+  display: block;
+  margin-top: 4px;
+  color: #a1a1aa;
+  font-size: 11px;
+}
+
+.pdf-export-section {
+  margin-top: 20px;
+}
+
+.pdf-export-section h3 {
+  margin: 0 0 9px;
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.1;
+}
+
+.pdf-export-intro {
+  margin-top: 16px;
+}
+
+.pdf-export-intro p {
+  display: -webkit-box;
+  margin: 0;
+  max-height: 58px;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #e8e8ed;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.pdf-export-section ul,
+.pdf-export-section ol {
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pdf-export-section li {
+  display: flex;
+  align-items: center;
+  min-height: 29px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #e8e8ed;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.pdf-export-section ol {
+  counter-reset: booking-step;
+}
+
+.pdf-export-section ol li {
+  counter-increment: booking-step;
+}
+
+.pdf-export-section ol li::before {
+  flex: 0 0 auto;
+  width: 16px;
+  content: counter(booking-step) ". ";
+  color: rgb(209, 0, 0);
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.pdf-export-cta {
+  margin: 20px 0 0;
+  padding: 13px 16px;
+  border: 1px solid rgba(209, 0, 0, 0.5);
+  border-radius: 8px;
+  background: rgba(209, 0, 0, 0.12);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+@media print {
+  @page {
+    size: Letter;
+    margin: 0.35in;
+  }
+
+  html,
+  body {
+    width: 100%;
+    min-height: auto;
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #proposal-print,
+  #proposal-print * {
+    visibility: visible;
+  }
+
+  #proposal-print {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    min-height: auto;
+    padding: 0 !important;
+    color: #111 !important;
+    background: #fff !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    font-size: 10px;
+    line-height: 1.25;
+  }
+
+  #proposal-print .print-hide {
+    display: none !important;
+  }
+
+  #proposal-print .brand-logo {
+    filter: none !important;
+  }
+
+  #proposal-print .print-logo-panel {
+    width: 48px !important;
+    height: 48px !important;
+    background: #050505 !important;
+    border-color: #111 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+  }
+
+  #proposal-print h3 {
+    margin-top: 2px !important;
+    font-size: 17px !important;
+    line-height: 1.1 !important;
+    color: #111 !important;
+  }
+
+  #proposal-print p,
+  #proposal-print li,
+  #proposal-print h4 {
+    color: #111 !important;
+  }
+}
